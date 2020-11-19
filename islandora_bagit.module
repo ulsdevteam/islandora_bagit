@@ -373,9 +373,12 @@ function islandora_bagit_create_bag($islandora_object) {
   $plugins = variable_get('islandora_bagit_object_plugins', array(''));
   if (count($plugins)) {
     foreach ($plugins as $plugin => $enabled) {
+error_log('plugin = ' . $plugin);
+
       if ($enabled) {
         module_load_include('inc', 'islandora_bagit', 'plugins/' . $plugin);
         $plugin_init_function = 'islandora_bagit_' . $plugin . '_init';
+error_log('init = ' . $plugin_init_function);
         // Process the plugins.
         if ($files_to_add = $plugin_init_function($islandora_object, $tmp_ds_directory)) {
           // Generate octetstream sum.

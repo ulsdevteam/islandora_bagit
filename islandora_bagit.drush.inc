@@ -34,12 +34,13 @@ function islandora_bagit_drush_command() {
   $items['create-islandora-bag'] = array(
     'description' => dt('Creates a Bag for an Islandora object.'),
     'arguments'   => array(
-      '[object|collection]'    => dt('Whether you want to create a single Bag for an object or Bags for all members of a collection.'),
-      'PID'    => dt('The PID for the object or collection you want to create a Bag for.'),
+      '[object|collection|solr]'    => dt('Whether you want to create a single Bag for an object or Bags for all members of a collection or query.'),
+      'PID|"solr query"'    => dt('The PID for the object or collection you want to create a Bag for, or a Solr query string.'),
     ),
     'examples' => array(
       'Standard example' => 'drush --user=fedoraAdmin create-islandora-bag object islandora:190',
       'Standard example (for collection)' => 'drush --user=fedoraAdmin create-islandora-bag collection islandora:sp_basic_image_collection',
+      'Standard example (for Solr)' => 'drush --user=fedoraAdmin create-islandora-bag solr "RELS_EXT_isPageOf_uri_ms:info\:fedora/islandora\:book101"',
       'Alias example' => 'drush --user=fedoraAdmin cib object islandora:190',
     ),
     'aliases' => array('cib'),
@@ -60,18 +61,25 @@ function islandora_bagit_drush_command() {
  */
 function drush_islandora_bagit_create_islandora_bag($type = 'object', $pid = NULL) {
   // Validate the arguments.
-  if (!in_array($type, array('object', 'collection'))) {
-    drush_set_error('BagIt type not specified', "Sorry, type argument must be either 'object' or 'collection'.");
+  if (!in_array($type, array('object', 'collection', 'solr'))) {
+    drush_set_error('BagIt type not specified', "Sorry, type argument must be either 'object' or 'collection' or 'solr'.");
     return FALSE;
   }
-  if (!$pid) {
+  if (!$pid && in_array($type, array('object', 'collection'))) {
     drush_set_error('Islandora PID not specified', "Sorry, you need to supply a PID.");
+    return FALSE;
+  }
+  if (!$pid && $type === 'solr') {
+    drush_set_error('Solr query not specified', "Sorry, you need to supply a Solr query.");
     return FALSE;
   }
 
   // List of objects to create Bags for.
   $objects_to_bag = array();
 
+  if ($type == 'solr') {
+    $objects_to_bag = islandora_bagit_get_solr($pid);
+  }
   if ($type == 'collection') {
     $collection_object = islandora_object_load($pid);
     $objects_to_bag = islandora_bagit_get_batch_members($collection_object);

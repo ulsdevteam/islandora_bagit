@@ -1239,11 +1239,11 @@ function islandora_bagit_get_solr($query) {
   // List of objects to create Bags for.
   $pids = array();
 
-  if (!module_exists('islandora_solr_search')) {
+  if (!module_exists('islandora_solr')) {
     return $pids;
   }
 
-  module_load_include('inc', 'islandora_solr_search', 'includes/query_processor');
+  module_load_include('inc', 'islandora_solr', 'includes/query_processor');
 
   // stolen from islandora_datastream_crud/includes/utilities.php 
   $query_processor = new IslandoraSolrQueryProcessor();
